@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from collections import deque
 from contextlib import contextmanager
 from enum import Enum
@@ -39,7 +37,7 @@ class JSONSchema(JSON):
             self,
             value: Union[bool, Mapping[str, AnyJSONCompatible]],
             *,
-            catalogue: Catalogue = None,
+            catalogue: 'Catalogue' = None,
             session: Hashable = 'default',
             uri: URI = None,
             metaschema_uri: URI = None,
@@ -68,8 +66,10 @@ class JSONSchema(JSON):
         from jschon.catalogue import Catalogue
 
         if catalogue is None:
-            if (catalogue := Catalogue.get_default()) is None:
-                raise JSONSchemaError("catalogue not given and default catalogue not found")
+            catalogue = Catalogue.get_default()
+            if (catalogue) is None:
+                raise JSONSchemaError(
+                    "catalogue not given and default catalogue not found")
 
         if uri is not None:
             catalogue.add_schema(uri, self, session=session)
@@ -125,14 +125,15 @@ class JSONSchema(JSON):
             self._bootstrap(value)
 
             kwclasses = {
-                key: kwclass for key in value
-                if ((kwclass := self.metaschema.kwclasses.get(key)) and
-                    # skip bootstrapped keywords
-                    key not in self.keywords)
+                key: self.metaschema.kwclasses.get(key) for key in value
+                if self.metaschema.kwclasses.get(key) and
+                # skip bootstrapped keywords
+                key not in self.keywords
             }
 
             for kwclass in self._resolve_dependencies(kwclasses):
-                kw = kwclass(self, value[(key := kwclass.key)])
+                key = kwclass.key
+                kw = kwclass(self, value[(key)])
                 self.keywords[key] = kw
                 self.value[key] = kw.json
 
@@ -140,7 +141,7 @@ class JSONSchema(JSON):
                 self._resolve_references()
 
         else:
-            raise TypeError(f"{value=} is not JSONSchema-compatible")
+            raise TypeError(f"{value} is not JSONSchema-compatible")
 
     def _bootstrap(self, value: Mapping[str, AnyJSONCompatible]) -> None:
         from jschon.vocabulary.core import IdKeyword, SchemaKeyword, VocabularyKeyword
@@ -171,10 +172,10 @@ class JSONSchema(JSON):
                         item._resolve_references()
 
     @staticmethod
-    def _resolve_dependencies(kwclasses: Dict[str, KeywordClass]) -> Iterator[KeywordClass]:
+    def _resolve_dependencies(kwclasses: Dict[str, 'KeywordClass']) -> Iterator['KeywordClass']:
         dependencies = {
-            kwclass: [depclass for dep in tuplify(kwclass.depends)
-                      if (depclass := kwclasses.get(dep))]
+            kwclass: [kwclasses.get(dep) for dep in tuplify(kwclass.depends)
+                      if (kwclasses.get(dep))]
             for kwclass in kwclasses.values()
         }
         while dependencies:
@@ -189,13 +190,13 @@ class JSONSchema(JSON):
                     yield kwclass
                     break
 
-    def validate(self) -> Scope:
+    def validate(self) -> 'Scope':
         """Validate the schema against its metaschema."""
         return self.metaschema.evaluate(self)
 
-    def evaluate(self, instance: JSON, scope: Scope = None) -> Scope:
+    def evaluate(self, instance: JSON, scope: 'Scope' = None) -> 'Scope':
         """Evaluate a JSON document.
-        
+
         The returned :class:`Scope` represents the complete evaluation
         result tree for this (sub)schema node.
 
@@ -227,9 +228,9 @@ class JSONSchema(JSON):
         return scope
 
     @property
-    def parentschema(self) -> Optional[JSONSchema]:
+    def parentschema(self) -> Optional['JSONSchema']:
         """The containing :class:`JSONSchema` instance.
-        
+
         Note that this is not necessarily the same as `self.parent`.
         """
         parent = self.parent
@@ -239,25 +240,29 @@ class JSONSchema(JSON):
             parent = parent.parent
 
     @property
-    def metaschema(self) -> Metaschema:
+    def metaschema(self) -> 'Metaschema':
         """The schema's :class:`~jschon.vocabulary.Metaschema`."""
         from jschon.vocabulary import Metaschema
 
-        if (uri := self.metaschema_uri) is None:
-            raise JSONSchemaError("The schema's metaschema URI has not been set")
+        uri = self.metaschema_uri
+        if uri is None:
+            raise JSONSchemaError(
+                "The schema's metaschema URI has not been set")
 
+        metaschema = self.catalogue.get_schema(uri, session='__meta__')
         if not isinstance(
-                metaschema := self.catalogue.get_schema(uri, session='__meta__'),
-                Metaschema,
+            metaschema,
+            Metaschema,
         ):
-            raise JSONSchemaError(f"The schema referenced by {uri} is not a metachema")
+            raise JSONSchemaError(
+                f"The schema referenced by {uri} is not a metachema")
 
         return metaschema
 
     @property
     def metaschema_uri(self) -> Optional[URI]:
         """The :class:`~jschon.uri.URI` identifying the schema's metaschema.
-        
+
         If not defined on this (sub)schema, the metaschema URI
         is determined by the parent schema.
         """
@@ -273,7 +278,7 @@ class JSONSchema(JSON):
     @property
     def base_uri(self) -> Optional[URI]:
         """The schema's base :class:`~jschon.uri.URI`.
-        
+
         The base URI is obtained by searching up the schema tree
         for a schema URI, and removing any fragment.
         """
@@ -299,12 +304,13 @@ class JSONSchema(JSON):
             self._uri = value
 
             if self._uri is not None:
-                self.catalogue.add_schema(self._uri, self, session=self.session)
+                self.catalogue.add_schema(
+                    self._uri, self, session=self.session)
 
     @property
     def canonical_uri(self) -> Optional[URI]:
         """The absolute location of the (sub)schema.
-        
+
         This is not necessarily an 'absolute URI', as it may contain
         a fragment.
         """
@@ -318,7 +324,8 @@ class JSONSchema(JSON):
             node = node.parent
 
             if isinstance(node, JSONSchema) and node._uri is not None:
-                if fragment := node._uri.fragment:
+                fragment = node._uri.fragment
+                if fragment:
                     relpath = JSONPointer.parse_uri_fragment(fragment) / keys
                 else:
                     relpath = JSONPointer(keys)
@@ -335,7 +342,7 @@ class Scope:
             path: JSONPointer = None,
             relpath: JSONPointer = None,
             instpath: JSONPointer = None,
-            parent: Scope = None,
+            parent: 'Scope' = None,
     ):
         self.schema: JSONSchema = schema
         self.key: Optional[str] = key
@@ -351,7 +358,7 @@ class Scope:
         self._discard = False
 
     @contextmanager
-    def __call__(self, instance: JSON, key: str, schema: JSONSchema = None) -> ContextManager[Scope]:
+    def __call__(self, instance: JSON, key: str, schema: JSONSchema = None) -> ContextManager['Scope']:
         """Yield a subscope of the current scope, for evaluating `instance`.
         Descend down the evaluation path by `key`, into `schema` if given, or
         within the schema of the current scope otherwise."""
@@ -362,15 +369,17 @@ class Scope:
         else:
             relpath = JSONPointer((key,))
 
-        self.children.setdefault(instance_path := instance.path, {})
-        self.children[instance_path][key] = (child := Scope(
+        instance_path = instance.path
+        self.children.setdefault(instance_path, {})
+        child = Scope(
             schema,
             key=key,
             path=path,
             relpath=relpath,
             instpath=instance_path,
             parent=self,
-        ))
+        )
+        self.children[instance_path][key] = (child)
 
         try:
             yield child
@@ -378,7 +387,7 @@ class Scope:
             if child._discard:
                 del self.children[instance_path][key]
 
-    def sibling(self, instance: JSON, key: str) -> Optional[Scope]:
+    def sibling(self, instance: JSON, key: str) -> Optional['Scope']:
         try:
             return self.parent.children[instance.path][key] if self.parent else None
         except KeyError:
@@ -395,7 +404,7 @@ class Scope:
 
     def pass_(self) -> None:
         """Flag the scope as valid.
-        
+
         A scope is initially valid, so this should ordinarily only need
         to be called by a keyword when it must reverse a scope failure.
         """
@@ -422,7 +431,7 @@ class Scope:
     @property
     def passed(self) -> bool:
         """Return the assertion result of the scope.
-        
+
         In the current implementation, this can only ever differ from
         :attr:`valid` for an "if" keyword subscope: its validation result
         may be false (triggering "else") while its assertion result is always
@@ -435,14 +444,17 @@ class Scope:
 
     @property
     def absolute_uri(self) -> Optional[URI]:
-        if (schema_uri := self.schema.canonical_uri) is not None:
-            if fragment := schema_uri.fragment:
-                relpath = JSONPointer.parse_uri_fragment(fragment) / self.relpath
+        schema_uri = self.schema.canonical_uri
+        if (schema_uri) is not None:
+            fragment = schema_uri.fragment
+            if fragment:
+                relpath = JSONPointer.parse_uri_fragment(
+                    fragment) / self.relpath
             else:
                 relpath = self.relpath
             return schema_uri.copy(fragment=relpath.uri_fragment())
 
-    def iter_children(self, instance: JSON = None) -> Iterator[Scope]:
+    def iter_children(self, instance: JSON = None) -> Iterator['Scope']:
         """Return an iterator over child scopes of this scope, optionally
         filtered by an instance to which they apply."""
         for instance_path, keyword_scopes in self.children.items():
@@ -460,7 +472,7 @@ class Scope:
             for child in self.iter_children():
                 yield from child.collect_annotations(instance, key)
 
-    def output(self, format: OutputFormat) -> Dict[str, AnyJSONCompatible]:
+    def output(self, format: 'OutputFormat') -> Dict[str, AnyJSONCompatible]:
         """Return an output dictionary formatted in accordance with the
         JSON Schema specification of the given output `format`."""
         from jschon.output import OutputFormatter

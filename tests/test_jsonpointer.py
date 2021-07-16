@@ -14,11 +14,16 @@ def test_create_jsonpointer(values: List[Union[str, List[str]]]):
         keys += [jsonpointer_unescape(token) for token in value.split('/')[1:]] if isinstance(value, str) else value
 
     ptr0 = JSONPointer(*values)
-    assert ptr0 == (ptr1 := JSONPointer(*values))
-    assert ptr0 == (ptr2 := JSONPointer(keys))
-    assert ptr0 == (ptr3 := JSONPointer(ptr0))
-    assert ptr0 != (ptr4 := JSONPointer() if keys else JSONPointer('/'))
-    assert ptr0 != (ptr5 := JSONPointer('/', keys))
+    ptr1 = JSONPointer(*values)
+    ptr2 = JSONPointer(keys)
+    ptr3 = JSONPointer(ptr0)
+    ptr4 = JSONPointer() if keys else JSONPointer('/')
+    ptr5 = JSONPointer('/', keys)
+    assert ptr0 == ptr1
+    assert ptr0 == ptr2
+    assert ptr0 == ptr3
+    assert ptr0 != ptr4
+    assert ptr0 != ptr5
     assert JSONPointer(ptr0, keys, *values) == JSONPointer(*values, keys, ptr0)
 
     ptrs = {ptr0, ptr1, ptr2, ptr3}
@@ -42,7 +47,8 @@ def test_extend_jsonpointer_one_key(value, newkey):
 
 @given(jsonpointer, hs.lists(jsonpointer_key))
 def test_extend_jsonpointer_multi_keys(value, newkeys):
-    pointer = (base_ptr := JSONPointer(value)) / newkeys
+    base_ptr = JSONPointer(value)
+    pointer = base_ptr / newkeys
     for i in range(len(newkeys)):
         assert pointer[len(base_ptr) + i] == newkeys[i]
     assert str(pointer) == value + ''.join(f'/{jsonpointer_escape(key)}' for key in newkeys)

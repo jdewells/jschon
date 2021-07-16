@@ -12,14 +12,14 @@ VERSION = eval(re.search(
 )[1])
 
 setup(
-    name='jschon',
+    name='jschon-shamelessdowngrade',
     version=VERSION,
-    description='A pythonic, extensible JSON Schema implementation.',
+    description='A shameless downgrade of a pythonic, extensible JSON Schema implementation.',
     long_description=README,
     long_description_content_type='text/markdown',
-    url='https://github.com/marksparkza/jschon',
-    author='Mark Jacobson',
-    author_email='mark@saeon.ac.za',
+    url='https://github.com/jdewells/jschon',
+    authors='Mark Jacobson, Jonathan Wells',
+    author_email='jdewells25@gmail.com',
     license='MIT',
     classifiers=[
         'Development Status :: 3 - Alpha',
@@ -29,15 +29,13 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3 :: Only',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Software Development :: Libraries',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
     packages=find_packages(exclude=['tests']),
     include_package_data=True,
-    python_requires='~=3.8',
+    python_requires='~=3.6',
     install_requires=['rfc3986'],
     extras_require={
         'test': [

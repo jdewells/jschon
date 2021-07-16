@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import collections
 import re
 import urllib.parse
@@ -55,7 +53,7 @@ class JSONPointer(Sequence[str]):
     _json_pointer_re = re.compile(r'^(/([^~/]|(~[01]))*)*$')
     _array_index_re = re.compile(r'^0|([1-9][0-9]*)$')
 
-    def __new__(cls, *values: Union[str, Iterable[str]]) -> JSONPointer:
+    def __new__(cls, *values: Union[str, Iterable[str]]) -> 'JSONPointer':
         """Create and return a new :class:`JSONPointer` instance, constructed by
         the concatenation of the given `values`.
 
@@ -89,7 +87,7 @@ class JSONPointer(Sequence[str]):
         ...
 
     @overload
-    def __getitem__(self, index: slice) -> JSONPointer:
+    def __getitem__(self, index: slice) -> 'JSONPointer':
         ...
 
     def __getitem__(self, index):
@@ -105,14 +103,14 @@ class JSONPointer(Sequence[str]):
         return len(self._keys)
 
     @overload
-    def __truediv__(self, suffix: str) -> JSONPointer:
+    def __truediv__(self, suffix: str) -> 'JSONPointer':
         ...
 
     @overload
-    def __truediv__(self, suffix: Iterable[str]) -> JSONPointer:
+    def __truediv__(self, suffix: Iterable[str]) -> 'JSONPointer':
         ...
 
-    def __truediv__(self, suffix) -> JSONPointer:
+    def __truediv__(self, suffix) -> 'JSONPointer':
         """ self / suffix """
         if isinstance(suffix, str):
             return JSONPointer(self, (suffix,))
@@ -120,7 +118,7 @@ class JSONPointer(Sequence[str]):
             return JSONPointer(self, suffix)
         return NotImplemented
 
-    def __eq__(self, other: JSONPointer) -> bool:
+    def __eq__(self, other: 'JSONPointer') -> bool:
         """ self == other """
         if isinstance(other, JSONPointer):
             return self._keys == other._keys
@@ -157,7 +155,8 @@ class JSONPointer(Sequence[str]):
 
             key = keys.popleft()
             try:
-                if (isjson := isinstance(value, JSON)) and value.type == "object" or \
+                isjson = isinstance(value, JSON)
+                if isjson and value.type == "object" or \
                         not isjson and isinstance(value, Mapping):
                     return resolve(value[key], keys)
 
@@ -175,7 +174,7 @@ class JSONPointer(Sequence[str]):
         return resolve(document, collections.deque(self._keys))
 
     @classmethod
-    def parse_uri_fragment(cls, value: str) -> JSONPointer:
+    def parse_uri_fragment(cls, value: str) -> 'JSONPointer':
         """Return a new :class:`JSONPointer` constructed from the :rfc:`6901`
         string obtained by decoding `value`.
 

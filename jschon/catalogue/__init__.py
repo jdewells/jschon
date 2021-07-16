@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import pathlib
 import uuid
 from contextlib import contextmanager
@@ -34,10 +32,10 @@ class Catalogue:
         '2019-09': _2019_09.initialize,
         '2020-12': _2020_12.initialize,
     }
-    _default_catalogue: Catalogue = None
+    _default_catalogue: 'Catalogue' = None
 
     @classmethod
-    def get_default(cls) -> Optional[Catalogue]:
+    def get_default(cls) -> Optional['Catalogue']:
         """Get the default :class:`Catalogue` instance, if there is one."""
         return cls._default_catalogue
 
@@ -108,9 +106,9 @@ class Catalogue:
 
         uristr = str(uri)
         candidates = [
-            (base_uristr, base_dir)
+            (str(base_uri), base_dir)
             for base_uri, base_dir in self._directories.items()
-            if uristr.startswith(base_uristr := str(base_uri))
+            if uristr.startswith(str(base_uri))
         ]
         if candidates:
             # if there is more than one candidate base URI, we consider

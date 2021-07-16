@@ -56,7 +56,7 @@ def assert_keyword_order(keyword_list, keyword_pairs):
 def test_keyword_dependency_resolution_2019_09(value: list, catalogue):
     metaschema = catalogue.get_schema(metaschema_uri_2019_09)
     kwclasses = {
-        key: kwclass for key in value if (kwclass := metaschema.kwclasses.get(key))
+        key: metaschema.kwclasses.get(key) for key in value if metaschema.kwclasses.get(key)
     }
     keywords = [
         kwclass.key for kwclass in JSONSchema._resolve_dependencies(kwclasses)
@@ -98,7 +98,7 @@ def test_keyword_dependency_resolution_2019_09(value: list, catalogue):
 def test_keyword_dependency_resolution_2020_12(value: list, catalogue):
     metaschema = catalogue.get_schema(metaschema_uri_2020_12)
     kwclasses = {
-        key: kwclass for key in value if (kwclass := metaschema.kwclasses.get(key))
+        key: metaschema.kwclasses.get(key) for key in value if metaschema.kwclasses.get(key)
     }
     keywords = [
         kwclass.key for kwclass in JSONSchema._resolve_dependencies(kwclasses)
@@ -193,11 +193,13 @@ def test_base_uri(ptr: str, base_uri: str):
 def test_uri(ptr: str, uri: str, canonical: bool, catalogue):
     rootschema = JSONSchema(id_example, metaschema_uri=metaschema_uri_2020_12)
     schema: JSONSchema = JSONPointer.parse_uri_fragment(ptr[1:]).evaluate(rootschema)
-    assert schema == catalogue.get_schema(uri := URI(uri))
+    uri = URI(uri)
+    assert schema == catalogue.get_schema(uri)
     if canonical:
         # 'canonical' is as per the JSON Schema spec; however, we skip testing of
         # anchored URIs since we have only one way to calculate a schema's canonical URI
-        if (fragment := uri.fragment) and not fragment.startswith('/'):
+        fragment = uri.fragment
+        if fragment and not fragment.startswith('/'):
             return
 
         if fragment:

@@ -1,0 +1,19 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+rfc3986 = "*"
+pytest = "*"
+
+[dev-packages]
+tox = "*"
+pytest = "*"
+coverage = "*"
+hypothesis = "*"
+pytest-benchmark = "*"
+twine = "*"
+
+[requires]
+python_version = "3.6"

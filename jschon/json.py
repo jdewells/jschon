@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import json
 from collections import deque
 from decimal import Decimal
@@ -22,7 +20,7 @@ class JSON(Sequence['JSON'], Mapping[str, 'JSON']):
     """An implementation of the JSON data model."""
 
     @classmethod
-    def loadf(cls, path: Union[str, PathLike], **kwargs: Any) -> JSON:
+    def loadf(cls, path: Union[str, PathLike], **kwargs: Any) -> 'JSON':
         """Deserialize a JSON file to a :class:`JSON` instance.
 
         :param path: the path to the file
@@ -31,7 +29,7 @@ class JSON(Sequence['JSON'], Mapping[str, 'JSON']):
         return cls(json_loadf(path), **kwargs)
 
     @classmethod
-    def loads(cls, value: str, **kwargs: Any) -> JSON:
+    def loads(cls, value: str, **kwargs: Any) -> 'JSON':
         """Deserialize a JSON string to a :class:`JSON` instance.
 
         :param value: the JSON string
@@ -43,9 +41,9 @@ class JSON(Sequence['JSON'], Mapping[str, 'JSON']):
             self,
             value: AnyJSONCompatible,
             *,
-            parent: JSON = None,
+            parent: 'JSON' = None,
             key: str = None,
-            itemclass: Type[JSON] = None,
+            itemclass: Type['JSON'] = None,
             **itemkwargs: Any,
     ):
         """Initialize a :class:`JSON` instance from the given JSON-compatible
@@ -128,7 +126,7 @@ class JSON(Sequence['JSON'], Mapping[str, 'JSON']):
                 self.value[k] = itemclass(v, parent=self, key=k, **itemkwargs)
 
         else:
-            raise TypeError(f"{value=} is not JSON-compatible")
+            raise TypeError(f"{value} is not JSON-compatible")
 
     @property
     def path(self) -> JSONPointer:
@@ -167,13 +165,13 @@ class JSON(Sequence['JSON'], Mapping[str, 'JSON']):
             return iter(self.value)
         raise TypeError(f"{self!r} is not iterable")
 
-    def __getitem__(self, index: Union[int, slice, str]) -> JSON:
+    def __getitem__(self, index: Union[int, slice, str]) -> 'JSON':
         if isinstance(index, (int, slice)) and self.type == "array" or \
                 isinstance(index, str) and self.type == "object":
             return self.value[index]
         raise TypeError(f"{self!r} is not subscriptable")
 
-    def __eq__(self, other: Union[JSON, AnyJSONCompatible]) -> bool:
+    def __eq__(self, other: Union['JSON', AnyJSONCompatible]) -> bool:
         if not isinstance(other, JSON):
             other = JSON(other)
         if self.type == other.type:
@@ -186,28 +184,28 @@ class JSON(Sequence['JSON'], Mapping[str, 'JSON']):
             return self.value == other.value
         return NotImplemented
 
-    def __ge__(self, other: Union[JSON, AnyJSONCompatible]) -> bool:
+    def __ge__(self, other: Union['JSON', AnyJSONCompatible]) -> bool:
         if not isinstance(other, JSON):
             other = JSON(other)
         if self.type == other.type:
             return self.value >= other.value
         return NotImplemented
 
-    def __gt__(self, other: Union[JSON, AnyJSONCompatible]) -> bool:
+    def __gt__(self, other: Union['JSON', AnyJSONCompatible]) -> bool:
         if not isinstance(other, JSON):
             other = JSON(other)
         if self.type == other.type:
             return self.value > other.value
         return NotImplemented
 
-    def __le__(self, other: Union[JSON, AnyJSONCompatible]) -> bool:
+    def __le__(self, other: Union['JSON', AnyJSONCompatible]) -> bool:
         if not isinstance(other, JSON):
             other = JSON(other)
         if self.type == other.type:
             return self.value <= other.value
         return NotImplemented
 
-    def __lt__(self, other: Union[JSON, AnyJSONCompatible]) -> bool:
+    def __lt__(self, other: Union['JSON', AnyJSONCompatible]) -> bool:
         if not isinstance(other, JSON):
             other = JSON(other)
         if self.type == other.type:

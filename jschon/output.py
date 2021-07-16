@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import Dict
 
 from jschon.json import AnyJSONCompatible
@@ -22,7 +20,8 @@ class OutputFormatter:
     def basic(scope: Scope) -> Dict[str, AnyJSONCompatible]:
         def visit(node: Scope):
             if node.valid is valid:
-                if (msgval := getattr(node, msgkey)) is not None:
+                msgval = getattr(node, msgkey)
+                if msgval is not None:
                     yield {
                         "instanceLocation": str(node.instpath),
                         "keywordLocation": str(node.path),
@@ -53,7 +52,8 @@ class OutputFormatter:
             }
             if not result[childkey]:
                 del result[childkey]
-                if (msgval := getattr(node, msgkey)) is not None:
+                msgval = getattr(node, msgkey)
+                if msgval is not None:
                     result[msgkey] = msgval
             elif len(result[childkey]) == 1:
                 result = result[childkey][0]
@@ -76,19 +76,22 @@ class OutputFormatter:
     @staticmethod
     def verbose(scope: Scope) -> Dict[str, AnyJSONCompatible]:
         def visit(node: Scope):
+            valid = node.valid
             result = {
-                "valid": (valid := node.valid),
+                "valid": valid,
                 "instanceLocation": str(node.instpath),
                 "keywordLocation": str(node.path),
                 "absoluteKeywordLocation": str(node.absolute_uri),
             }
 
             msgkey = "annotation" if valid else "error"
-            if (msgval := getattr(node, msgkey)) is not None:
+            msgval = getattr(node, msgkey)
+            if msgval is not None:
                 result[msgkey] = msgval
 
             childkey = "annotations" if valid else "errors"
-            if childarr := [visit(child) for child in node.iter_children()]:
+            childarr = [visit(child) for child in node.iter_children()]
+            if childarr:
                 result[childkey] = childarr
 
             return result

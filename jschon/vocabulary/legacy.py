@@ -23,7 +23,8 @@ class RecursiveRefKeyword_2019_09(Keyword):
         self.refschema = None
 
     def resolve(self) -> None:
-        if (base_uri := self.parentschema.base_uri) is not None:
+        base_uri = self.parentschema.base_uri
+        if base_uri is not None:
             self.refschema = self.parentschema.catalogue.get_schema(
                 base_uri, metaschema_uri=self.parentschema.metaschema_uri, session=self.parentschema.session
             )
@@ -32,12 +33,14 @@ class RecursiveRefKeyword_2019_09(Keyword):
 
     def evaluate(self, instance: JSON, scope: Scope) -> None:
         refschema = self.refschema
-        if (recursive_anchor := refschema.get("$recursiveAnchor")) and \
+        recursive_anchor = refschema.get("$recursiveAnchor")
+        if recursive_anchor and \
                 recursive_anchor.value is True:
 
             target_scope = scope
             while target_scope is not None:
-                if (base_anchor := target_scope.schema.get("$recursiveAnchor")) and \
+                base_anchor = target_scope.schema.get("$recursiveAnchor")
+                if base_anchor and \
                         base_anchor.value is True:
                     refschema = target_scope.schema
 
@@ -93,7 +96,8 @@ class AdditionalItemsKeyword_2019_09(Keyword, Applicator):
     depends = "items"
 
     def evaluate(self, instance: JSON, scope: Scope) -> None:
-        if (items := scope.sibling(instance, "items")) and type(items.annotation) is int:
+        items = scope.sibling(instance, "items")
+        if items and type(items.annotation) is int:
             annotation = None
             for index, item in enumerate(instance[items.annotation + 1:]):
                 annotation = True

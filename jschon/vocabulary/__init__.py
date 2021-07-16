@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import Dict, Optional, Union, Tuple, Sequence, Mapping, Type, Any, TYPE_CHECKING
 
 from jschon.json import JSON, AnyJSONCompatible
@@ -32,10 +30,10 @@ class Metaschema(JSONSchema):
 
     def __init__(
             self,
-            catalogue: Catalogue,
+            catalogue: 'Catalogue',
             value: Mapping[str, AnyJSONCompatible],
-            core_vocabulary: Vocabulary,
-            *default_vocabularies: Vocabulary,
+            core_vocabulary: 'Vocabulary',
+            *default_vocabularies: 'Vocabulary',
     ):
         self.core_vocabulary: Vocabulary = core_vocabulary
         self.default_vocabularies: Tuple[Vocabulary, ...] = default_vocabularies
@@ -55,7 +53,7 @@ class Vocabulary:
     evaluation of JSON documents, and provides a runtime implementation
     (in the form of a :class:`Keyword` class) for each of those keywords."""
 
-    def __init__(self, uri: URI, *kwclasses: KeywordClass):
+    def __init__(self, uri: URI, *kwclasses: 'KeywordClass'):
         self.uri: URI = uri
         self.kwclasses: Dict[str, KeywordClass] = {
             kwclass.key: kwclass for kwclass in kwclasses
@@ -71,7 +69,8 @@ class Keyword:
         self.applicator_cls = None
         for applicator_cls in (Applicator, ArrayApplicator, PropertyApplicator):
             if isinstance(self, applicator_cls):
-                if (kwjson := applicator_cls.jsonify(parentschema, self.key, value)) is not None:
+                kwjson = applicator_cls.jsonify(parentschema, self.key, value)
+                if kwjson is not None:
                     self.applicator_cls = applicator_cls
                     break
         else:
@@ -81,7 +80,8 @@ class Keyword:
         self.parentschema: JSONSchema = parentschema
 
     def can_evaluate(self, instance: JSON) -> bool:
-        if self.types is None or instance.type in (types := tuplify(self.types)):
+        types = tuplify(self.types)
+        if self.types is None or instance.type in types:
             return True
 
         if instance.type == "number" and "integer" in types:

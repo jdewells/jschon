@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import rfc3986
 import rfc3986.exceptions
 import rfc3986.misc
@@ -61,7 +59,7 @@ class URI:
     def has_absolute_base(self) -> bool:
         return self.copy(fragment=False).is_absolute()
 
-    def resolve(self, base_uri: URI) -> URI:
+    def resolve(self, base_uri: 'URI') -> 'URI':
         """Produce a new URI by resolving self against the given base URI."""
         uri = object.__new__(URI)
         uri._uriref = self._uriref.resolve_with(base_uri._uriref)
@@ -74,7 +72,7 @@ class URI:
             path=True,
             query=True,
             fragment=True,
-    ) -> URI:
+    ) -> 'URI':
         """Produce a new URI composed of the specified components of self.
 
         - True => use existing

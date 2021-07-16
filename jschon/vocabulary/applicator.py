@@ -99,7 +99,8 @@ class ThenKeyword(Keyword, Applicator):
     depends = "if"
 
     def evaluate(self, instance: JSON, scope: Scope) -> None:
-        if (if_ := scope.sibling(instance, "if")) and if_.valid:
+        if_ = scope.sibling(instance, "if")
+        if if_ and if_.valid:
             self.json.evaluate(instance, scope)
         else:
             scope.discard()
@@ -110,7 +111,8 @@ class ElseKeyword(Keyword, Applicator):
     depends = "if"
 
     def evaluate(self, instance: JSON, scope: Scope) -> None:
-        if (if_ := scope.sibling(instance, "if")) and not if_.valid:
+        if_ = scope.sibling(instance, "if")
+        if if_ and not if_.valid:
             self.json.evaluate(instance, scope)
         else:
             scope.discard()
@@ -167,7 +169,8 @@ class ItemsKeyword(Keyword, Applicator):
     depends = "prefixItems"
 
     def evaluate(self, instance: JSON, scope: Scope) -> None:
-        if (prefix_items := scope.sibling(instance, "prefixItems")) and \
+        prefix_items = scope.sibling(instance, "prefixItems")
+        if (prefix_items) and \
                 prefix_items.annotation is not None:
             if prefix_items.annotation is True:
                 return
@@ -214,7 +217,7 @@ class UnevaluatedItemsKeyword(Keyword, Applicator):
             contains_indices |= set(contains_annotation)
 
         annotation = None
-        for index, item in enumerate(instance[(start := last_evaluated_item + 1):], start):
+        for index, item in enumerate(instance[last_evaluated_item + 1:], last_evaluated_item + 1):
             if index not in contains_indices:
                 annotation = True
                 self.json.evaluate(item, scope)
@@ -293,12 +296,13 @@ class AdditionalPropertiesKeyword(Keyword, Applicator):
 
     def evaluate(self, instance: JSON, scope: Scope) -> None:
         evaluated_names = set()
-        if (properties := scope.sibling(instance, "properties")) and \
-                properties.annotation is not None:
+
+        properties = scope.sibling(instance, "properties")
+        if properties and properties.annotation is not None:
             evaluated_names |= set(properties.annotation)
 
-        if (pattern_properties := scope.sibling(instance, "patternProperties")) and \
-                pattern_properties.annotation is not None:
+        pattern_properties = scope.sibling(instance, "patternProperties")
+        if pattern_properties and pattern_properties.annotation is not None:
             evaluated_names |= set(pattern_properties.annotation)
 
         annotation = []

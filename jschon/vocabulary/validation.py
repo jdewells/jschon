@@ -182,10 +182,10 @@ class MaxContainsKeyword(Keyword):
     depends = "contains"
 
     def evaluate(self, instance: JSON, scope: Scope) -> None:
-        if contains := scope.sibling(instance, "contains"):
-            if contains.annotation is not None and len(contains.annotation) > self.json:
-                scope.fail('The array has too many elements matching the '
-                           f'"contains" subschema (maximum {self.json})')
+        contains = scope.sibling(instance, "contains")
+        if contains and contains.annotation is not None and len(contains.annotation) > self.json:
+            scope.fail('The array has too many elements matching the '
+                        f'"contains" subschema (maximum {self.json})')
 
 
 class MinContainsKeyword(Keyword):
@@ -194,7 +194,8 @@ class MinContainsKeyword(Keyword):
     depends = "contains", "maxContains"
 
     def evaluate(self, instance: JSON, scope: Scope) -> None:
-        if contains := scope.sibling(instance, "contains"):
+        contains = scope.sibling(instance, "contains")
+        if contains:
             contains_count = len(contains.annotation) \
                 if contains.annotation is not None \
                 else 0
